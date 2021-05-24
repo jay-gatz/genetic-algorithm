@@ -4,8 +4,8 @@ from game import *
 
 
 class GeneticAlgo:
-    def __init__(self, p_map, initial_pop_num=200, cross_over_type=0, cross_over_pos1=3,
-                 cross_over_pos2=6, mutation_prob=0.1, selection_type=0, selection_num=10,
+    def __init__(self, p_map, initial_pop_num=200, cross_over_type=0, cross_over_pos1=40,
+                 cross_over_pos2=6, mutation_prob=0.1, selection_type=0, selection_num=100,
                  fitness_win=False):
         self.p_map = p_map
         self.map_len = len(p_map)
@@ -75,14 +75,16 @@ class GeneticAlgo:
             # Parent #0 [0 ... CrossOver Pos 1] | Parent #2 [CrossOver Pos 1 ... End]
             if self.cross_over_type == 0:
                 child = parent1[:self.cross_over_pos1] + parent2[self.cross_over_pos1:]
+                child_sec = parent2[:self.cross_over_pos1] + parent1[self.cross_over_pos1:]
             # CrossOver Type #1
             # Parent #0 [0 ... CrossOver Pos 1]  | Parent #2 [CrossOver Pos 1 ... CrossOver Pos 2] | Parent #0 [CrossOver Pos 2 ... End]
             else:
                 child = parent1[:self.cross_over_pos1] + \
                         parent2[self.cross_over_pos1:self.cross_over_pos2] + \
-                        parent2[self.cross_over_pos2:]
+                        parent1[self.cross_over_pos2:]
             # Append Created Solution to the Child Solutions List!
             child_solutions.append(child)
+            child_solutions.append(child_sec)
         return child_solutions
 
     # Mutation Phase!
@@ -92,8 +94,15 @@ class GeneticAlgo:
             if random.uniform(0, 1) < self.mutation_prob:
                 child = list(child)
                 # Change Random Step of the Solution to the JUMP Action!
-                child[random.randint(0, len(child) - 1)] = '1'
-                childs[i] = ''.join(child)
+                mutate_pos = random.randint(0, len(child) - 1)
+                mutate_val = random.choice(['0', '1', '2'])
+                new_child = child.copy()
+                new_child[mutate_pos] = mutate_val
+                new_child = ''.join(new_child)
+                # If We Gonna Have JUMP, JUMP Dont Do the Mutation!
+                if '11' in new_child:
+                    continue
+                childs[i] = new_child
         return childs
 
     # Create the Next Generation!
@@ -101,16 +110,21 @@ class GeneticAlgo:
         # Sort Population Dictionary by the Fitness Function!
         self.population = dict(sorted(self.population.items(), key=lambda item: item[1]
                                       , reverse=True))
-        print(self.population)
+        print(len(self.population), list(self.population.values())[0],
+              list(self.population.keys())[0])
         # Do the Selection Phase!
         selected_parents = self.selection()
         # Do the CrossOver Phase!
         child_solutions = self.cross_over(selected_parents)
         # Do the Mutation Phase!
         child_solutions = self.mutation(child_solutions)
+        population_len = len(self.population) // 3
+        self.population = dict(itertools.islice(self.population.items(), population_len))
         for child_solution in child_solutions:
+            child_solution = self.correction(child_solution)
             self.population[child_solution] = self.fitness_function(child_solution)
         # Print the Mean of the Generation's Fitness Function!
+        print("PA",len(self.population))
         print(sum([p[1] for p in self.population.values()]) / len(self.population))
 
     # Run the Genetic Algorithm !
@@ -121,7 +135,15 @@ class GeneticAlgo:
         while not self.done:
             # Make the Next Generation!
             self.step()
-            input()
+            # input()
         # Return the Solution! :D
         self.solution = self.population[0]
         return self.solution
+
+
+    def correction(self, solution):
+        solution = list(solution)
+        for p in range(len(solution) - 1):
+            if solution[p] == '1' :
+                solution[p + 1] = '0'
+        return ''.join(solution)

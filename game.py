@@ -20,6 +20,7 @@ class Game:
         first_time = True
         score = 0
         max_score = 0
+        mushroom = 0
         for i in range(self.current_level_len - 1):
             current_step = current_level[i]
             if (current_step == '_'):
@@ -30,11 +31,13 @@ class Game:
                 score += 1
             elif (current_step == 'M'):
                 score += 1
+                if actions[i-1] != '1':
+                    mushroom += 1
             else:
                 score = 0
             if score > max_score:
                 max_score = score
-        return max_score == self.current_level_len - 1, max_score
+        return max_score == self.current_level_len - 1, max_score + mushroom
 
 
 if __name__ == '__main__':
