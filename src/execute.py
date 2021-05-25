@@ -1,4 +1,5 @@
 from src.algos import *
+from src.charts import *
 
 if __name__ == '__main__':
     file = open(f'../levels/level{input("Level Number?    ")}.txt')
@@ -12,7 +13,9 @@ if __name__ == '__main__':
         cross_over2 = eval(input(f'CrossOver2 Pos ({len(map)}) ?   '))
     g = GeneticAlgo(map, cross_over_pos1=cross_over1, cross_over_pos2=cross_over2,
                     selection_type=selection_type, cross_over_type=cross_over_type,
-                    initial_pop_num=500, selection_num=250)
+                    initial_pop_num=200, selection_num=100)
     solution, fitness_history = g.run()
 
 
+    pplot = PPlot(fitness_history)
+    pplot.show_plots()

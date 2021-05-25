@@ -1,7 +1,7 @@
 import random
 import itertools
 from src.game import *
-from statistics import *
+
 
 class GeneticAlgo:
     def __init__(self, p_map, initial_pop_num=200, cross_over_type=0, cross_over_pos1=40,
@@ -22,7 +22,6 @@ class GeneticAlgo:
         self.done = False
         self.generation = 0
         self.fitness_history = {}
-
 
     # Function that Calculate the Fitness Function for the Solution!
     def fitness_function(self, solution):
@@ -45,9 +44,9 @@ class GeneticAlgo:
                 solution = ''
                 while len(solution) < self.map_len:
                     solution += str(random.randint(0, 2))
-                    # The Solution Should not Have Following Jumps!
-                    if solution[-1] == '1' and len(solution) < self.map_len - 1:
-                        solution += '0'
+                    # # The Solution Should not Have Following Jumps!
+                    # if solution[-1] == '1' and len(solution) < self.map_len - 1:
+                    #     solution += '0'
             # Add the Solution to the Population!
             self.population[solution] = self.fitness_function(solution)
 
@@ -63,7 +62,7 @@ class GeneticAlgo:
         else:
             # Calculate Population Probability!
             p_sum = sum([pmd[1] for pmd in list(self.population.values())])
-            perc = [pmd[1] / p_sum  for pmd in list(self.population.values())]
+            perc = [pmd[1] / p_sum for pmd in list(self.population.values())]
             selected_parents = random.choices(selected_parents,
                                               weights=perc, k=self.selection_num)
         return selected_parents
@@ -89,8 +88,8 @@ class GeneticAlgo:
                         parent2[self.cross_over_pos1:self.cross_over_pos2] + \
                         parent1[self.cross_over_pos2:]
                 child_sec = parent2[:self.cross_over_pos1] + \
-                        parent1[self.cross_over_pos1:self.cross_over_pos2] + \
-                        parent2[self.cross_over_pos2:]
+                            parent1[self.cross_over_pos1:self.cross_over_pos2] + \
+                            parent2[self.cross_over_pos2:]
             # Append Created Solution to the Child Solutions List!
             child_solutions.append(child)
             child_solutions.append(child_sec)
@@ -128,14 +127,21 @@ class GeneticAlgo:
         child_solutions = self.cross_over(selected_parents)
         # Do the Mutation Phase!
         child_solutions = self.mutation(child_solutions)
+        # Keep a Third of Old Generation!
         population_len = len(self.population) // 3
+        # Remove All of the Old Generation Solutions if its the Best Selection and Cross #2!
+        if self.selection_type == 0 and self.cross_over_type == 0:
+            population_len = 0
+        # Do the Slice of the Population!
         self.population = dict(itertools.islice(self.population.items(), population_len))
+        # Correct Solutions! (They Shouldnt have JUMP JUMP Actions!)
         for child_solution in child_solutions:
             child_solution = self.correction(child_solution)
             self.population[child_solution] = self.fitness_function(child_solution)
         # Print the Mean of the Generation's Fitness Function!
-        # print("PMD",len(self.population))
         print(sum([p[1] for p in self.population.values()]) / len(self.population))
+        # Increase the Number of Generation!
+        self.generation += 1
 
     # Run the Genetic Algorithm !
     def run(self):
@@ -156,7 +162,6 @@ class GeneticAlgo:
     def correction(self, solution):
         solution = list(solution)
         for p in range(len(solution) - 1):
-            if solution[p] == '1' :
+            if solution[p] == '1':
                 solution[p + 1] = '0'
         return ''.join(solution)
-
