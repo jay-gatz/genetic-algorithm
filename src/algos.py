@@ -47,6 +47,8 @@ class GeneticAlgo:
                     # # The Solution Should not Have Following Jumps!
                     # if solution[-1] == '1' and len(solution) < self.map_len - 1:
                     #     solution += '0'
+                # The Solution Should'nt Have Following Jumps!
+                solution = self.correction(solution)
             # Add the Solution to the Population!
             self.population[solution] = self.fitness_function(solution)
 

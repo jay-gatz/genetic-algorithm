@@ -1,5 +1,6 @@
 from src.algos import *
 from src.charts import *
+from src.render import *
 
 if __name__ == '__main__':
     file = open(f'../levels/level{input("Level Number?    ")}.txt')
@@ -16,6 +17,8 @@ if __name__ == '__main__':
                     initial_pop_num=200, selection_num=100)
     solution, fitness_history = g.run()
 
+    # pplot = PPlot(fitness_history)
+    # pplot.show_plots()
 
-    pplot = PPlot(fitness_history)
-    pplot.show_plots()
+    visualizer = Visualize(map, solution[0])
+    visualizer.render()
