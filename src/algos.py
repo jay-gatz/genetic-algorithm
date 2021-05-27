@@ -1,12 +1,14 @@
 import random
 import itertools
 from src.game import *
+from statistics import *
 
 
 class GeneticAlgo:
     def __init__(self, p_map, initial_pop_num=200, cross_over_type=0, cross_over_pos1=40,
                  cross_over_pos2=6, mutation_prob=0.2, selection_type=0, selection_num=100,
-                 fitness_win=False):
+                 max_generation=163, fitness_win=False, mutation_num=1, conv_num=10,
+                 eps=0.5):
         self.p_map = p_map
         self.map_len = len(p_map)
         self.initial_pop_num = initial_pop_num
@@ -14,14 +16,18 @@ class GeneticAlgo:
         self.cross_over_pos1 = cross_over_pos1
         self.cross_over_pos2 = cross_over_pos2
         self.mutation_prob = mutation_prob
+        self.mutation_num = mutation_num
+        self.max_generation = max_generation
         self.selection_type = selection_type
         self.selection_num = selection_num
+        self.conv_num = conv_num
+        self.eps = eps
         self.fitness_win = fitness_win
         self.population = {}
         self.steps = 0
         self.done = False
         self.generation = 0
-        self.fitness_history = {}
+        self.fitness_history = []
 
     # Function that Calculate the Fitness Function for the Solution!
     def fitness_function(self, solution):
@@ -44,9 +50,6 @@ class GeneticAlgo:
                 solution = ''
                 while len(solution) < self.map_len:
                     solution += str(random.randint(0, 2))
-                    # # The Solution Should not Have Following Jumps!
-                    # if solution[-1] == '1' and len(solution) < self.map_len - 1:
-                    #     solution += '0'
                 # The Solution Should'nt Have Following Jumps!
                 solution = self.correction(solution)
             # Add the Solution to the Population!
@@ -104,12 +107,13 @@ class GeneticAlgo:
             if random.uniform(0, 1) < self.mutation_prob:
                 child = list(child)
                 # Change Random Step of the Solution to the JUMP Action!
-                mutate_pos = random.randint(0, len(child) - 1)
-                mutate_val = random.choice(['0', '1', '2'])
-                new_child = child.copy()
-                new_child[mutate_pos] = mutate_val
-                new_child = ''.join(new_child)
-                childs[i] = new_child
+                for j in range(self.mutation_num):
+                    mutate_pos = random.randint(0, len(child) - 1)
+                    mutate_val = random.choice(['0', '1', '2'])
+                    new_child = child.copy()
+                    new_child[mutate_pos] = mutate_val
+                    new_child = ''.join(new_child)
+                    childs[i] = new_child
         return childs
 
     # Create the Next Generation!
@@ -119,7 +123,7 @@ class GeneticAlgo:
                                       , reverse=True))
         # Save Max, Min, And the Mean of the Fitness Function of the Generation!
         pop_list = [pmd[1] for pmd in list(self.population.values())]
-        self.fitness_history[self.generation] = pop_list.copy()
+        self.fitness_history.append(pop_list.copy())
         # Print Some Bullshits!
         # print(len(self.population), list(self.population.values())[0],
         #        list(self.population.keys())[0])
@@ -155,8 +159,12 @@ class GeneticAlgo:
             self.step()
             # Get the Solution!
             self.solution = list(self.population.items())[0]
-            if self.solution[1][0]:
+            # If our Generation Fitness Functions Converged..!
+            if self.solution[1][0] and \
+                    (self.fitness_convergence(self.conv_num, self.eps) \
+                     or self.generation > self.max_generation):
                 self.done = True
+
         # Return the Solution! :D
         return self.solution, self.fitness_history
 
@@ -167,3 +175,17 @@ class GeneticAlgo:
             if solution[p] == '1':
                 solution[p + 1] = '0'
         return ''.join(solution)
+
+    # Check if the Fitness Function Values Converged!
+    def fitness_convergence(self, num=5, eps=0.4):
+        # We Should Have At Least # Num Generation!
+        if self.generation > num:
+            # Calculate the Average of Last # Num Averages of the Generations!
+            averages = [mean(pmd) for pmd in self.fitness_history[-num:]]
+            average_of_averages = mean(averages)
+            for average in averages:
+                # Converge Condition!
+                if abs(average - average_of_averages) > eps:
+                    return False
+            return True
+        return False

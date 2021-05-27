@@ -15,10 +15,10 @@ class Visualize():
         self.step = 0
         self.board_len = min(63 // 3, len(p_map))
         self.board = Board(2, self.board_len)
-        self.board.on_timer = self.ontimer
         self.board.on_key_press = self.onkey
+        self.board.title = 'Super Mario!'
+        self.board.on_timer = self.ontimer
         self.board.start_timer(263)
-        print(self.actions)
 
     def fill_board(self):
         # Fill the Game Board!
@@ -26,8 +26,10 @@ class Visualize():
             # L Cells Are on The Top of the Map!
             if 'L' in cell:
                 self.board[0][x % self.board_len] = cell
+            # Other Cells Are on the Middle of the Map!
             else:
                 self.board[1][x % self.board_len] = cell
+
         # Jump Action (Player Image Should Show on the Top of the Map)!
         if self.action == '1':
             self.board[0][0] = 'pj'
@@ -62,6 +64,7 @@ class Visualize():
     def onkey(self, key):
         if key == "Return":
             self.start = True
+
 
     def render(self):
         self.board.show()

@@ -9,10 +9,10 @@ class PPlot:
         self.max_f = []
         self.min_f = []
         self.mean_f = []
-        for key in self.fitness_history:
-            self.max_f.append(max(self.fitness_history[key]))
-            self.min_f.append(min(self.fitness_history[key]))
-            self.mean_f.append(mean(self.fitness_history[key]))
+        for fitness_list in self.fitness_history:
+            self.max_f.append(max(fitness_list))
+            self.min_f.append(min(fitness_list))
+            self.mean_f.append(mean(fitness_list))
 
     def show_plots(self):
         self.calculate_pm()
